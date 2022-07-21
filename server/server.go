@@ -1,10 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
+
+var endPoints = [...]string{"book"}
+
+func checkEndPoints(endPointRequest string) bool {
+	for i := range endPoints {
+		if endPoints[i] == endPointRequest {
+			return true
+		}
+	}
+	return false
+}
 
 type book struct {
 	ID     string `json:"ID"`
@@ -28,8 +41,9 @@ var events = allBooks{
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/hello" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
+	if !checkEndPoints(strings.Trim(r.URL.Path, "/")) {
+		http.Error(w, r.URL.Path, http.StatusNotFound)
 		return
 	}
 
@@ -38,7 +52,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Hello!")
+	json.NewEncoder(w).Encode(events)
 }
 
 func formHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,12 +69,14 @@ func formHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/hello", helloHandler)
+	for i := range endPoints {
+		http.HandleFunc("/"+endPoints[i], helloHandler)
+	}
 	http.HandleFunc("/form", formHandler)
 	fileServer := http.FileServer(http.Dir("./static")) // New code
 	http.Handle("/", fileServer)
 
-	fmt.Printf("Starting server. Port 8080.\n")
+	fmt.Printf("Starting server. Port .\n")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
