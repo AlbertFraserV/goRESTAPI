@@ -12,9 +12,9 @@ type book struct {
 	Author string `json:"Author"`
 }
 
-type allEvents []book
+type allBooks []book
 
-var events = allEvents{
+var events = allBooks{
 	{
 		ID:     "1",
 		Title:  "Slaughterhouse-Five",
